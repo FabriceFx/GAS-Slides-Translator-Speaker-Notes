@@ -1,110 +1,133 @@
 /**
- * @fileoverview Script de traduction automatique de Google Slides incluant les notes du présentateur.
+ * @fileoverview Script de traduction automatique intégré à l'interface Google Slides.
  * @author Fabrice Faucheux
- * @version 2.1
  */
 
 /**
- * Fonction principale qui orchestre la copie et la traduction complète (Slides + Notes).
- * @return {void}
+ * Crée le menu personnalisé à l'ouverture de la présentation.
+ * Se déclenche automatiquement lors du chargement de Google Slides.
  */
-const traduirePresentationSlides = () => {
+const onOpen = () => {
+  const ui = SlidesApp.getUi();
+  ui.createMenu('🌐 Traduction')
+    .addItem('Traduire la présentation en Anglais', 'lancerTraductionActive')
+    .addToUi();
+};
+
+/**
+ * Fonction déclenchée par le menu.
+ * Récupère la présentation active, la copie et lance la traduction.
+ */
+const lancerTraductionActive = () => {
+  const ui = SlidesApp.getUi();
+  
   // CONFIGURATION
-  // ID de la présentation source (à extraire de l'URL)
-  const ID_PRESENTATION_SOURCE = 'ID_DE_VOTRE_PRESENTATION';
   const LANGUE_SOURCE = 'fr';
   const LANGUE_CIBLE = 'en';
 
   try {
-    console.time('Temps d\'exécution');
-    Logger.log('🚀 Démarrage du processus de traduction complète...');
+    // Message discret de démarrage
+    const presentationActive = SlidesApp.getActivePresentation();
+    presentationActive.toast('Copie et analyse en cours...', 'Traduction Démarrée', 10);
+    
+    // 1. Récupération des données contextuelles
+    const idSource = presentationActive.getId();
+    const nomSource = presentationActive.getName();
+    const nomCible = `${nomSource} (Traduit en ${LANGUE_CIBLE.toUpperCase()})`;
 
-    // 1. Récupération et Copie du fichier via DriveApp
-    const fichierSource = DriveApp.getFileById(ID_PRESENTATION_SOURCE);
-    const nomFichierSource = fichierSource.getName();
-    const nomFichierCible = `${nomFichierSource} (Traduit en ${LANGUE_CIBLE.toUpperCase()})`;
-
-    Logger.log(`Copie du fichier : "${nomFichierSource}" vers "${nomFichierCible}"`);
-    const fichierCopie = fichierSource.makeCopy(nomFichierCible);
+    // 2. Copie du fichier via DriveApp
+    const fichierSource = DriveApp.getFileById(idSource);
+    const fichierCopie = fichierSource.makeCopy(nomCible);
     const idCopie = fichierCopie.getId();
 
-    // 2. Ouverture de la copie via SlidesApp
+    Logger.log(`Fichier copié. ID: ${idCopie}`);
+
+    // 3. Ouverture de la copie pour traitement
     const presentationCopie = SlidesApp.openById(idCopie);
     const diapositives = presentationCopie.getSlides();
 
-    Logger.log(`Début de la traduction de ${diapositives.length} diapositives et de leurs notes.`);
+    // Notification utilisateur
+    presentationActive.toast(`Traitement de ${diapositives.length} diapositives...`, 'En cours', -1);
 
-    // 3. Itération sur chaque diapositive
+    // 4. Itération sur chaque diapositive (Slides + Notes)
     diapositives.forEach((diapositive, index) => {
-      Logger.log(`Traitement de la diapositive ${index + 1}/${diapositives.length}`);
+      // Traduction du contenu visible
+      traduireContenuDiapositive(diapositive, LANGUE_SOURCE, LANGUE_CIBLE);
       
-      // --- A. Contenu visible de la diapositive ---
-      
-      // Traduction des formes simples (Shapes)
-      const formes = diapositive.getShapes();
-      formes.forEach(forme => traduireElementTexte(forme, LANGUE_SOURCE, LANGUE_CIBLE));
-
-      // Traduction des tableaux (Tables)
-      const tableaux = diapositive.getTables();
-      tableaux.forEach(tableau => traduireTableau(tableau, LANGUE_SOURCE, LANGUE_CIBLE));
-
-      // Traduction des groupes (Groups)
-      const groupes = diapositive.getGroups();
-      groupes.forEach(groupe => {
-        const enfants = groupe.getChildren();
-        enfants.forEach(enfant => {
-          if (enfant.getPageElementType() === SlidesApp.PageElementType.SHAPE) {
-            traduireElementTexte(enfant.asShape(), LANGUE_SOURCE, LANGUE_CIBLE);
-          }
-        });
-      });
-
-      // --- B. Notes du présentateur (Speaker Notes) ---
-      
+      // Traduction des notes conférencier
       const pageNotes = diapositive.getNotesPage();
       if (pageNotes) {
-        // La page de notes contient elle aussi des "Shapes" (dont la zone de texte principale des notes)
-        const formesNotes = pageNotes.getShapes();
-        formesNotes.forEach(formeNote => {
-            // On réutilise notre fonction helper car la structure est identique
-            traduireElementTexte(formeNote, LANGUE_SOURCE, LANGUE_CIBLE);
-        });
+        traduireContenuDiapositive(pageNotes, LANGUE_SOURCE, LANGUE_CIBLE);
       }
     });
 
     presentationCopie.saveAndClose();
-    console.timeEnd('Temps d\'exécution');
-    Logger.log(`✅ Traduction terminée avec succès.`);
-    Logger.log(`Lien vers la nouvelle présentation : ${presentationCopie.getUrl()}`);
+
+    // 5. Affichage du résultat à l'utilisateur
+    const urlResultat = fichierCopie.getUrl();
+    const htmlOutput = HtmlService
+      .createHtmlOutput(`<p>La traduction est terminée avec succès !</p>
+                         <p><a href="${urlResultat}" target="_blank" style="font-family: sans-serif; font-size: 16px; color: #1a73e8;">Ouvrir la présentation traduite</a></p>`)
+      .setWidth(400)
+      .setHeight(150);
+      
+    ui.showModalDialog(htmlOutput, '✅ Traduction Terminée');
 
   } catch (erreur) {
-    console.error(`❌ Une erreur critique est survenue : ${erreur.message}`);
-    console.error(erreur.stack);
+    console.error(erreur);
+    ui.alert('Erreur', `Une erreur est survenue : ${erreur.message}`, ui.ButtonSet.OK);
   }
 };
 
 /**
- * Traduit le contenu textuel d'une forme (Shape) si elle contient du texte.
- * @param {GoogleAppsScript.Slides.Shape} forme - La forme à traiter.
- * @param {string} source - Code langue source (ex: 'fr').
- * @param {string} cible - Code langue cible (ex: 'en').
+ * Helper qui regroupe la traduction des Formes, Tableaux et Groupes pour un conteneur donné (Slide ou NotesPage).
+ * @param {GoogleAppsScript.Slides.Slide | GoogleAppsScript.Slides.NotesPage} conteneur 
+ * @param {string} source 
+ * @param {string} cible 
+ */
+const traduireContenuDiapositive = (conteneur, source, cible) => {
+  // A. Formes simples
+  const formes = conteneur.getShapes();
+  formes.forEach(forme => traduireElementTexte(forme, source, cible));
+
+  // B. Tableaux (uniquement si le conteneur supporte getTables - NotesPage ne le supporte pas toujours de la même façon, vérification utile)
+  if (conteneur.getTables) {
+    const tableaux = conteneur.getTables();
+    tableaux.forEach(tableau => traduireTableau(tableau, source, cible));
+  }
+
+  // C. Groupes
+  const groupes = conteneur.getGroups();
+  groupes.forEach(groupe => {
+    const enfants = groupe.getChildren();
+    enfants.forEach(enfant => {
+      if (enfant.getPageElementType() === SlidesApp.PageElementType.SHAPE) {
+        traduireElementTexte(enfant.asShape(), source, cible);
+      }
+    });
+  });
+};
+
+/**
+ * Traduit le contenu textuel d'une forme.
+ * @param {GoogleAppsScript.Slides.Shape} forme 
+ * @param {string} source 
+ * @param {string} cible 
  */
 const traduireElementTexte = (forme, source, cible) => {
-  // Certaines formes n'ont pas de zone de texte (ex: lignes, connecteurs simples)
-  // La méthode getText() renvoie null si pas de texte possible, ou un TextRange vide.
   try {
     const zoneDeTexte = forme.getText();
     traduireRangeDeTexte(zoneDeTexte, source, cible);
   } catch (e) {
-    // Ignore les formes qui ne supportent pas le texte
+    // La forme ne contient pas de texte éditable
   }
 };
 
 /**
- * Itère sur les cellules d'un tableau pour les traduire.
- * @param {GoogleAppsScript.Slides.Table} tableau - Le tableau à traiter.
- * @param {string} source - Code langue source.
- * @param {string} cible - Code langue cible.
+ * Itère sur les cellules d'un tableau.
+ * @param {GoogleAppsScript.Slides.Table} tableau 
+ * @param {string} source 
+ * @param {string} cible 
  */
 const traduireTableau = (tableau, source, cible) => {
   const nbLignes = tableau.getNumRows();
@@ -113,30 +136,27 @@ const traduireTableau = (tableau, source, cible) => {
   for (let i = 0; i < nbLignes; i++) {
     for (let j = 0; j < nbColonnes; j++) {
       const cellule = tableau.getCell(i, j);
-      const zoneDeTexteCellule = cellule.getText();
-      traduireRangeDeTexte(zoneDeTexteCellule, source, cible);
+      traduireRangeDeTexte(cellule.getText(), source, cible);
     }
   }
 };
 
 /**
- * Fonction utilitaire centrale effectuant la traduction via l'API LanguageApp.
- * @param {GoogleAppsScript.Slides.TextRange} textRange - L'objet TextRange à modifier.
- * @param {string} source - Code langue source.
- * @param {string} cible - Code langue cible.
+ * Effectue l'appel API de traduction.
+ * @param {GoogleAppsScript.Slides.TextRange} textRange 
+ * @param {string} source 
+ * @param {string} cible 
  */
 const traduireRangeDeTexte = (textRange, source, cible) => {
   if (!textRange) return;
-
   const texteOriginal = textRange.asString();
   
-  // Optimisation : On ne traduit que si le texte contient des caractères visibles
   if (texteOriginal && texteOriginal.trim().length > 0) {
     try {
       const texteTraduit = LanguageApp.translate(texteOriginal, source, cible);
       textRange.setText(texteTraduit);
     } catch (e) {
-      console.warn(`Avertissement : Échec traduction segment "${texteOriginal.substring(0, 20)}..."`);
+      console.warn(`Erreur traduction segment : ${e.toString()}`);
     }
   }
 };
