@@ -3,22 +3,28 @@
 ![Runtime](https://img.shields.io/badge/Google%20Apps%20Script-V8-green)
 ![Author](https://img.shields.io/badge/Auteur-Fabrice%20Faucheux-orange)
 
-# GAS Slides Translator & Speaker Notes
+# GAS Slides Translator (Menu Intégré)
 
 ## Description
-Script d'automatisation Google Workspace pour la traduction intégrale de présentations Google Slides. Ce projet génère une copie traduite du fichier source en préservant la mise en forme.
+Ce script ajoute un menu personnalisé "🌐 Traduction" directement dans l'interface de Google Slides. Il permet de générer une copie traduite (Diapositives + Notes conférencier) de la présentation active en un seul clic, sans accéder à l'éditeur de code.
 
 ## Fonctionnalités Clés
-* **Sécurité** : Opère sur une copie distincte du fichier original.
-* **Traduction Visuelle** : Traitement des zones de texte (Shapes), Tableaux et Groupes.
-* **Traduction Invisible** : **NOUVEAU** - Prise en charge complète des **Notes du présentateur** (Speaker Notes).
-* **Moteur V8** : Code moderne ES6+ optimisé.
+* **Menu UI Natif** : Intégration transparente dans la barre d'outils.
+* **Contextuel** : Agit sur la présentation ouverte, pas besoin d'ID.
+* **Feedback Utilisateur** : Affiche des notifications "Toast" pendant le traitement et une fenêtre de confirmation avec le lien cliquable à la fin.
+* **Complet** : Traduit Formes, Tableaux, Groupes et Notes.
 
 ## Installation Manuelle
 
-1.  Créez un projet sur [script.google.com](https://script.google.com) ou depuis votre Slide (Extensions > Apps Script).
-2.  Collez le code complet dans `Code.gs`.
-3.  Renseignez `ID_PRESENTATION_SOURCE` (ID dans l'URL du Slide).
-4.  Définissez `LANGUE_SOURCE` et `LANGUE_CIBLE`.
-5.  Lancez `traduirePresentationSlides`.
+⚠️ **Important** : Ce script doit être "lié" (Container-bound) à la présentation.
 
+1.  Ouvrez votre présentation Google Slides.
+2.  Allez dans le menu **Extensions** > **Apps Script**.
+3.  Supprimez tout code existant dans le fichier `Code.gs` et collez le script fourni.
+4.  Sauvegardez (Icône disquette).
+5.  **Rechargez** votre onglet Google Slides (F5).
+6.  Après quelques secondes, le menu **"🌐 Traduction"** apparaîtra à droite du menu "Aide".
+7.  Cliquez sur **Traduire la présentation en Anglais**. (L'autorisation sera demandée au premier lancement).
+
+## Auteur
+**Fabrice Faucheux** - Expert Senior Google Apps Script.
