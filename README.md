@@ -8,13 +8,13 @@
 ## Description
 Ce script ajoute un menu personnalisé "🌐 Traduction" directement dans l'interface de Google Slides. Il permet de générer une copie traduite (Diapositives + Notes conférencier) de la présentation active en un seul clic, sans accéder à l'éditeur de code.
 
-## Fonctionnalités Clés
+## Fonctionnalités clés
 * **Menu UI Natif** : Intégration transparente dans la barre d'outils.
 * **Contextuel** : Agit sur la présentation ouverte, pas besoin d'ID.
 * **Feedback Utilisateur** : Affiche des notifications "Toast" pendant le traitement et une fenêtre de confirmation avec le lien cliquable à la fin.
 * **Complet** : Traduit Formes, Tableaux, Groupes et Notes.
 
-## Installation Manuelle
+## Installation manuelle
 
 ⚠️ **Important** : Ce script doit être "lié" (Container-bound) à la présentation.
 
@@ -25,6 +25,3 @@ Ce script ajoute un menu personnalisé "🌐 Traduction" directement dans l'inte
 5.  **Rechargez** votre onglet Google Slides (F5).
 6.  Après quelques secondes, le menu **"🌐 Traduction"** apparaîtra à droite du menu "Aide".
 7.  Cliquez sur **Traduire la présentation en Anglais**. (L'autorisation sera demandée au premier lancement).
-
-## Auteur
-**Fabrice Faucheux** - Expert Senior Google Apps Script.
