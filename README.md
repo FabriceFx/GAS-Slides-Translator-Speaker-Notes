@@ -5,6 +5,12 @@
 
 # GAS Slides Translator (Menu Intégré)
 
+
+[🇫🇷 Version Française](#-version-française) | [🇬🇧 English Version](#-english-version)
+
+
+## 🇫🇷 Version Française
+
 ## Description
 Ce script ajoute un menu personnalisé "🌐 Traduction" directement dans l'interface de Google Slides. Il permet de générer une copie traduite (Diapositives + Notes conférencier) de la présentation active en un seul clic, sans accéder à l'éditeur de code.
 
@@ -25,3 +31,12 @@ Ce script ajoute un menu personnalisé "🌐 Traduction" directement dans l'inte
 5.  **Rechargez** votre onglet Google Slides (F5).
 6.  Après quelques secondes, le menu **"🌐 Traduction"** apparaîtra à droite du menu "Aide".
 7.  Cliquez sur **Traduire la présentation en Anglais**. (L'autorisation sera demandée au premier lancement).
+
+
+---
+## 🇬🇧 English Version
+
+> English translation coming soon.
+
+---
+<p align="center"><a href="https://faucheux.bzh" target="_blank" style="color: inherit; text-decoration: none;">&lt;&gt; par Fabrice Faucheux</a></p>
